@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
   {
     host: config.db.host,
     dialect: "mysql",
-    logging: false, 
+    logging: false,
   }
 );
 
@@ -16,6 +16,10 @@ async function connectDB() {
   try {
     await sequelize.authenticate();
     console.log("Connected to the Database.");
+
+    // await sequelize.sync();
+
+    console.log("Database synchronized.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     process.exit(1);

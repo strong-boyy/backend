@@ -3,6 +3,7 @@ const UserService = require("../services/user.service");
 const config = require("../configs/index");
 const jwtService = require("../utils/jwt.service");
 const bcrypt = require("bcrypt");
+const { omit } = require("lodash");
 
 exports.login = async (req, res, next) => {
   try {
@@ -31,6 +32,7 @@ exports.login = async (req, res, next) => {
           accessToken: accessToken,
           refreshToken: refreshToken,
         },
+        user: omit(user.toJSON(), "password"),
       },
     });
   } catch (error) {

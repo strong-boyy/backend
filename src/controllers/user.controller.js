@@ -27,14 +27,38 @@ exports.login = async (req, res, next) => {
     return res.send({
       message: "Đăng nhập thành công",
       data: {
-        token:{
+        token: {
           accessToken: accessToken,
           refreshToken: refreshToken,
-        }
+        },
       },
     });
   } catch (error) {
     console.log(error);
     return next(new ApiError(500, "Lỗi khi đăng nhập"));
+  }
+};
+
+exports.register = async (req, res, next) => {
+  try {
+    const { name, email, password, cfPassword } = req.body;
+    const userService = new UserService();
+    const user = await userService.findOne({ email: email });
+    if (user) {
+      return next(new ApiError(400, "Email đã được sử dụng"));
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userData = {
+      email: email,
+      name: name,
+      password: hashedPassword,
+    };
+    await userService.create(userData);
+    return res.send({
+      message: "Đăng ký thành công",
+    });
+  } catch (error) {
+    console.log(error);
+    return next(new ApiError(500, "Lỗi khi đăng ký tài khoản mới"));
   }
 };

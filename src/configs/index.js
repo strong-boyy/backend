@@ -15,6 +15,11 @@ const config = {
     password: process.env.DB_PASSWORD || "",
     name: process.env.DB_NAME || "strong-boyy",
   },
+  google: {
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackUrl: process.env.GOOGLE_CALLBACK,
+  },
 };
 
 module.exports = config;

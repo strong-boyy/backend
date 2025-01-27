@@ -20,6 +20,12 @@ const User = sequelize.define(
     },
     avatar: {
       type: DataTypes.STRING,
+    },
+    googleId: {
+      type: DataTypes.STRING,
+    },
+    isActived:{
+      type: DataTypes.TINYINT,
     }
   },
   {

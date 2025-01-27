@@ -1,25 +1,40 @@
 const express = require("express");
 const cors = require("cors");
+const session = require("express-session");
 
 const app = express();
 const ApiError = require("./src/api-error");
 const { connectDB } = require("./src/database");
 const config = require("./src/configs/index");
 const port = config.app.port;
+const passport = require("./src/passport");
 const userRouter = require("./src/routes/user.route");
+
 app.use(
   cors({
     origin: "*",
   })
 );
-
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(
+  session({
+    secret: config.app.jwt.key, 
+    resave: false, 
+    saveUninitialized: false,
+    cookie: {
+      secure: false, 
+      maxAge: 24 * 60 * 60 * 1000, 
+    },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/api/users", userRouter);
 
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to strong-boyy" });
+  res.send("<a href='/api/users/auth/google'>Login with google</a>");
 });
 
 app.use((req, res, next) => {

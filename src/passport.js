@@ -1,5 +1,5 @@
 const passport = require("passport");
-const config = require("../src/configs/index");
+const config = require("../src/config/index");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 passport.use(

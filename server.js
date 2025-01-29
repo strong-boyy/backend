@@ -1,11 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 const ApiError = require("./src/api-error");
-const { connectDB } = require("./src/database");
-const config = require("./src/configs/index");
+const { connectDB } = require("./src/config/database");
+const config = require("./src/config/index");
 const port = config.app.port;
 const passport = require("./src/passport");
 const userRouter = require("./src/routes/user.route");
@@ -17,6 +18,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   session({
     secret: config.app.jwt.key, 

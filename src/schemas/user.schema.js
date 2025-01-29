@@ -27,6 +27,19 @@ class UserSchema {
         .required("Mật khẩu không được để trống"),
     });
   }
+
+  static get verifyOtpSchema() {
+    return yup.object().shape({
+      email: yup
+        .string()
+        .email("Địa chỉ email không chính xác")
+        .required("Địa chỉ email không được để trống"),
+      otp: yup
+        .string()
+        .required("Mã Otp khồn được để trống")
+        .matches(/^\d{6}$/, "Mã Otp không hợp lệ"),
+    });
+  }
 }
 
 module.exports = UserSchema;

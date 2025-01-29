@@ -1,8 +1,13 @@
+const bcrypt = require("bcrypt");
 const ApiError = require("../api-error");
 const UserService = require("../services/user.service");
-const config = require("../configs/index");
-const jwtService = require("../utils/jwt.service");
-const bcrypt = require("bcrypt");
+const config = require("../config/index");
+const jwtService = require("../utils/jwt.util");
+const emailService = require("../utils/email.util");
+const OtpService = require("../services/otp.service");
+const { Otp } = require("../models/index");
+const { Op } = require("sequelize");
+const sendErrorResponse = require("../helpers/error-response");
 
 exports.login = async (req, res, next) => {
   try {
@@ -10,11 +15,11 @@ exports.login = async (req, res, next) => {
     const userService = new UserService();
     const user = await userService.findOne({ email: email });
     if (!user) {
-      return next(new ApiError(400, "Vui lòng kiểm tra lại email"));
+      return sendErrorResponse(res, 400, { email: "Please check your email" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return next(new ApiError(400, "Mật khẩu không đúng"));
+      return sendErrorResponse(res, 400, { password: "Incorrect password" });
     }
     const accessToken = jwtService.generateAccessToken({
       id: user.id,
@@ -25,23 +30,23 @@ exports.login = async (req, res, next) => {
       email: user.email,
     });
     return res.send({
-      message: "Đăng nhập thành công",
+      message: "Login successful",
       data: {
         token: {
           accessToken: accessToken,
           refreshToken: refreshToken,
         },
-        user:{
+        user: {
           id: user.id,
           name: user.name || "UnKnown",
           email: user.email || "UnKnown",
           avatar: user.avatar || "UnKnown",
-        }
+        },
       },
     });
   } catch (error) {
     console.log(error);
-    return next(new ApiError(500, "Lỗi khi đăng nhập"));
+    return next(new ApiError(500, { message: "Error during login" }));
   }
 };
 
@@ -75,12 +80,12 @@ exports.loginByGoogle = async (req, res, next) => {
             accessToken,
             refreshToken,
           },
-          user:{
+          user: {
             id: existingUser.id,
             name: existingUser.name || "UnKnown",
             email: existingUser.email || "UnKnown",
             avatar: existingUser.avatar || "UnKnown",
-          }
+          },
         },
       });
     } else {
@@ -113,12 +118,12 @@ exports.loginByGoogle = async (req, res, next) => {
             accessToken: accessToken,
             refreshToken: refreshToken,
           },
-          user:{
+          user: {
             id: newUser.id,
             name: newUser.name || "UnKnown",
             email: newUser.email || "UnKnown",
             avatar: newUser.avatar || "UnKnown",
-          }
+          },
         },
       });
     }
@@ -130,24 +135,119 @@ exports.loginByGoogle = async (req, res, next) => {
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, cfPassword } = req.body;
+    const { name, email, password } = req.body;
     const userService = new UserService();
+    const otpService = new OtpService();
     const user = await userService.findOne({ email: email });
     if (user) {
-      return next(new ApiError(400, "Email đã được sử dụng"));
+      return sendErrorResponse(res, 400, {
+        email: "Email has already been used",
+      });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const userData = {
       email: email,
       name: name,
       password: hashedPassword,
+      isActived: 0,
     };
-    await userService.create(userData);
+    const otp = emailService.generateOtp();
+    try {
+      await emailService.sendEmail(
+        email,
+        "Mã OTP đăng ký tài khoản",
+        `Mã OTP của bạn là: ${otp}`,
+        `<h2>Mã OTP của bạn là: ${otp}</h2>`
+      );
+    } catch (error) {
+      console.log(error);
+      return sendErrorResponse(res, 500, {
+        sendEmail: "Error when sending email",
+      });
+    }
+    const newUser = await userService.create(userData);
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+    await otpService.create({
+      userId: newUser.id,
+      otp: otp,
+      expiresAt: expiresAt,
+    });
     return res.send({
-      message: "Đăng ký thành công",
+      message: "Registration successful",
+      data: {},
     });
   } catch (error) {
     console.log(error);
-    return next(new ApiError(500, "Lỗi khi đăng ký tài khoản mới"));
+    return sendErrorResponse(res, 500, {
+      message: "Error when registering new account",
+    });
+  }
+};
+
+exports.verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const userService = new UserService();
+    const otpService = new OtpService();
+    const user = await userService.findOne({ email: email });
+    if (!user) {
+      return sendErrorResponse(res, 404, {
+        email: "Account does not exist with email",
+      });
+    }
+    const otpRecord = await otpService.findOne({
+      userId: user.id,
+      otp: otp,
+      expiresAt: { [Op.gt]: new Date() },
+    });
+    if (!otpRecord) {
+      return sendErrorResponse(res, 400, { otp: "Invalid or expired OTP" });
+    }
+    try {
+      await userService.update({ isActived: 1 }, { id: otpRecord.userId });
+    } catch (error) {
+      console.log(error);
+      return sendErrorResponse(res, 400, {
+        message: "Error when updating account status",
+      });
+    }
+    return res.send({
+      message: "Verification successful",
+    });
+  } catch (error) {
+    console.log(error);
+    return sendErrorResponse(res, 500, {
+      message: "Error during OTP verification",
+    });
+  }
+};
+
+exports.refreshToken = async (req, res, next) => {
+  try {
+    if(!req.user){
+      return sendErrorResponse(res, 403, { token: "Refresh token expired or invalid. Please log in again." });
+    }
+    const { id, email } = req.user;
+    const userService = new UserService();
+    const user = await userService.findOne({ email: email });
+    if (!user) {
+      return sendErrorResponse(res, 404, { email: "Email not found" });
+    }
+    const newAccessToken = jwtService.generateAccessToken({
+      id: user.id,
+      email: user.email,
+    });
+    return res.send({
+      message: "Token refreshed successfully",
+      data: {
+        accessToken: newAccessToken,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return sendErrorResponse(res, 500, {
+      message: "Error during token refresh",
+    });
   }
 };

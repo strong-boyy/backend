@@ -72,21 +72,27 @@ exports.loginByGoogle = async (req, res, next) => {
         email: existingUser.email,
       });
 
-      return res.send({
-        message: "Đã đăng nhập",
-        data: {
-          token: {
-            accessToken,
-            refreshToken,
-          },
-          user: {
-            id: existingUser.id,
-            name: existingUser.name || "UnKnown",
-            email: existingUser.email || "UnKnown",
-            avatar: existingUser.avatar || "UnKnown",
-          },
-        },
-      });
+      return res.send(`
+        <script>
+          window.opener.postMessage({
+            type: "google-login-success",
+            message: "Login success",
+            userData: {
+              user: {
+                id: "${existingUser.id}",
+                name: "${existingUser.name || "UnKnown"}",
+                email: "${existingUser.email || "UnKnown"}",
+                avatar: "${existingUser.avatar || "UnKnown"}",
+              },
+              token: {
+                accessToken: "${accessToken}",
+                refreshToken: "${refreshToken}"
+              }
+            }
+          }, "http://localhost:4000");
+          window.close();
+        </script>
+      `);
     } else {
       const { googleId, name, email, avatar } = req.user;
       const userService = new UserService();
@@ -110,21 +116,27 @@ exports.loginByGoogle = async (req, res, next) => {
         id: newUser.id,
         email: newUser.email,
       });
-      return res.send({
-        message: "Đăng nhập thành công",
-        data: {
-          token: {
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-          },
-          user: {
-            id: newUser.id,
-            name: newUser.name || "UnKnown",
-            email: newUser.email || "UnKnown",
-            avatar: newUser.avatar || "UnKnown",
-          },
-        },
-      });
+      return res.send(`
+        <script>
+          window.opener.postMessage({
+            type: "google-login-success",
+            message: "Login success",
+            userData: {
+              user: {
+                id: "${existingUser.id}",
+                name: "${existingUser.name || "UnKnown"}",
+                email: "${existingUser.email || "UnKnown"}",
+                avatar: "${existingUser.avatar || "UnKnown"}",
+              },
+              token: {
+                accessToken: "${accessToken}",
+                refreshToken: "${refreshToken}"
+              }
+            }
+          }, "http://localhost:4000");
+          window.close();
+        </script>
+      `);
     }
   } catch (error) {
     console.log(error);

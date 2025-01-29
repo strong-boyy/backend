@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const { omit } = require("lodash");
 const ApiError = require("../api-error");
 const UserService = require("../services/user.service");
 const config = require("../config/index");
@@ -35,12 +36,7 @@ exports.login = async (req, res, next) => {
           accessToken: accessToken,
           refreshToken: refreshToken,
         },
-        user: {
-          id: user.id,
-          name: user.name || "UnKnown",
-          email: user.email || "UnKnown",
-          avatar: user.avatar || "UnKnown",
-        },
+        user: omit(user.toJSON(), "password"),
       },
     });
   } catch (error) {

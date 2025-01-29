@@ -5,7 +5,6 @@ const config = require("../config/index");
 const jwtService = require("../utils/jwt.util");
 const emailService = require("../utils/email.util");
 const OtpService = require("../services/otp.service");
-const { Otp } = require("../models/index");
 const { Op } = require("sequelize");
 const sendErrorResponse = require("../helpers/error-response");
 

@@ -1,4 +1,4 @@
-const User = require("../models/user.model");
+const { User } = require("../models/index");
 
 class UserService {
   async create(userData) {
@@ -10,7 +10,12 @@ class UserService {
     const user = await User.findOne({ where: query });
     return user;
   }
-  
+
+  async update(userData, query) {
+    await User.update(userData, {
+      where: query,
+    });
+  }
 }
 
 module.exports = UserService;

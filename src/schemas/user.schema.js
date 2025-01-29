@@ -25,11 +25,6 @@ class UserSchema {
         .string()
         .min(8, "Mật khẩu phải từ 8 ký tự")
         .required("Mật khẩu không được để trống"),
-      cfPassword: yup
-        .string()
-        .min(8, "Mật khẩu phải từ 8 ký tự")
-        .required("Mật khẩu không được để trống")
-        .oneOf([yup.ref("password"), null], "Mật khẩu xác nhận không khớp"),
     });
   }
 }

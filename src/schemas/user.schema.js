@@ -5,26 +5,26 @@ class UserSchema {
     return yup.object().shape({
       email: yup
         .string()
-        .email("Địa chỉ email không chính xác")
-        .required("Địa chỉ email không được để trống"),
+        .email("Invalid email address")
+        .required("Email address is required"),
       password: yup
         .string()
-        .min(8, "Mật khẩu phải từ 8 ký tự")
-        .required("Mật khẩu không được để trống"),
+        .min(8, "Password must be at least 8 characters")
+        .required("Password is required"),
     });
   }
 
   static get registerSchema() {
     return yup.object().shape({
-      name: yup.string().required("Tên không được để trống"),
+      name: yup.string().required("Name is required"),
       email: yup
         .string()
-        .email("Địa chỉ email không chính xác")
-        .required("Địa chỉ email không được để trống"),
+        .email("Invalid email address")
+        .required("Email address is required"),
       password: yup
         .string()
-        .min(8, "Mật khẩu phải từ 8 ký tự")
-        .required("Mật khẩu không được để trống"),
+        .min(8, "Password must be at least 8 characters")
+        .required("Password is required"),
     });
   }
 
@@ -32,22 +32,22 @@ class UserSchema {
     return yup.object().shape({
       email: yup
         .string()
-        .email("Địa chỉ email không chính xác")
-        .required("Địa chỉ email không được để trống"),
+        .email("Invalid email address")
+        .required("Email address is required"),
       otp: yup
         .string()
-        .required("Mã Otp khồn được để trống")
-        .matches(/^\d{6}$/, "Mã Otp không hợp lệ"),
+        .required("OTP is required")
+        .matches(/^\d{6}$/, "Invalid OTP format"),
     });
   }
 
   static get updateUserSchema() {
     return yup.object().shape({
       name: yup.string(),
-      email: yup.string().email("Địa chỉ email không chính xác"),
+      email: yup.string().email("Invalid email address"),
     }).test(
       "at-least-one-field",
-      "Ít nhất một trường name hoặc email phải có",
+      "At least one of name or email must be provided",
       (values) => values.name || values.email 
     );
   }

@@ -41,6 +41,11 @@ const config = {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  cloud:{
+    name: process.env.CLOUDINARY_NAME,
+    key: process.env.CLOUDINARY_API_KEY,
+    secret: process.env.CLOUDINARY_API_SECRET,
+  }
 };
 
 module.exports = config;

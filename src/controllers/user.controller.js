@@ -49,7 +49,7 @@ exports.login = async (req, res, next) => {
 exports.loginByGoogle = async (req, res, next) => {
   try {
     if (!req.user) {
-      return next(new ApiError(401, "Vui lòng đăng nhập lại"));
+      return next(new ApiError(401, "Please log in again"));
     }
     if (req.isAuthenticated()) {
       const { googleId, email } = req.user;
@@ -57,7 +57,7 @@ exports.loginByGoogle = async (req, res, next) => {
 
       const existingUser = await userService.findOne({ email: email });
       if (!existingUser) {
-        return next(new ApiError(404, "Người dùng không tồn tại"));
+        return next(new ApiError(404, "User does not exist"));
       }
 
       const accessToken = jwtService.generateAccessToken({
@@ -95,7 +95,7 @@ exports.loginByGoogle = async (req, res, next) => {
       const userService = new UserService();
       const user = await userService.findOne({ email: email });
       if (user) {
-        return next(new ApiError(400, "Email đã được sử dụng"));
+        return next(new ApiError(400, "Email already in use"));
       }
       const userData = {
         email: email,
@@ -137,7 +137,7 @@ exports.loginByGoogle = async (req, res, next) => {
     }
   } catch (error) {
     console.log(error);
-    return next(new ApiError(500, "Lỗi khi đăng nhập với Google"));
+    return next(new ApiError(500, "Error while logging in with Google"));
   }
 };
 

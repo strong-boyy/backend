@@ -40,6 +40,18 @@ class UserSchema {
         .matches(/^\d{6}$/, "Mã Otp không hợp lệ"),
     });
   }
+
+  static get updateUserSchema() {
+    return yup.object().shape({
+      name: yup.string(),
+      email: yup.string().email("Địa chỉ email không chính xác"),
+    }).test(
+      "at-least-one-field",
+      "Ít nhất một trường name hoặc email phải có",
+      (values) => values.name || values.email 
+    );
+  }
+  
 }
 
 module.exports = UserSchema;

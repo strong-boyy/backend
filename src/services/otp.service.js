@@ -8,6 +8,10 @@ class OtpService {
   async findOne(query) {
     return await Otp.findOne({ where: query });
   }
+
+  async delete(query) {
+    return await Otp.destroy({ where: query });
+  }
 }
 
 module.exports = OtpService;

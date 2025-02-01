@@ -1,10 +1,11 @@
 const express = require("express");
+const router = express.Router();
 const users = require("../controllers/user.controller");
 const UserSchema = require("../schemas/user.schema");
 const validate = require("../middlewares/validate.middleware");
-const passport = require("../../src/passport");
-const router = express.Router();
 const verifyToken = require("../middlewares/auth.middleware");
+const upload = require("../middlewares/multer.middleware");
+const passport = require("../../src/passport");
 
 // Google
 router.get(
@@ -36,5 +37,13 @@ router.post(
 );
 
 router.post("/auth/refreshToken", verifyToken, users.refreshToken);
+
+router.put(
+  "/auth/update",
+  verifyToken,
+  upload.single("avatar"),
+  validate(UserSchema.updateUserSchema),
+  users.updateUser
+);
 
 module.exports = router;

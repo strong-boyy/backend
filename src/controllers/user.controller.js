@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const { omit } = require("lodash");
+const { omit, isFinite } = require("lodash");
 const ApiError = require("../api-error");
 const UserService = require("../services/user.service");
 const config = require("../config/index");
@@ -8,6 +8,7 @@ const emailService = require("../utils/email.util");
 const OtpService = require("../services/otp.service");
 const { Op } = require("sequelize");
 const sendErrorResponse = require("../helpers/error-response");
+const cloudinary = require("../config/cloudinary");
 
 exports.login = async (req, res, next) => {
   try {
@@ -219,6 +220,10 @@ exports.verifyOtp = async (req, res, next) => {
         message: "Error when updating account status",
       });
     }
+    await otpService.delete({
+      userId: user.id,
+      otp: otp,
+    });
     return res.send({
       message: "Verification successful",
     });
@@ -232,9 +237,6 @@ exports.verifyOtp = async (req, res, next) => {
 
 exports.refreshToken = async (req, res, next) => {
   try {
-    if(!req.user){
-      return sendErrorResponse(res, 403, { token: "Refresh token expired or invalid. Please log in again." });
-    }
     const { id, email } = req.user;
     const userService = new UserService();
     const user = await userService.findOne({ email: email });

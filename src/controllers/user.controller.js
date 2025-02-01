@@ -260,3 +260,63 @@ exports.refreshToken = async (req, res, next) => {
     });
   }
 };
+
+exports.updateUser = async (req, res, next) => {
+  try {
+    const { name, email } = req.body;
+    const { id } = req.user;
+    const userService = new UserService();
+    const otpService = new OtpService();
+    if (email) {
+      const user = await userService.findOne({ email: email });
+      if (user) {
+        return sendErrorResponse(res, 400, {
+          email: "Email has already been used",
+        });
+      }
+      const otp = emailService.generateOtp();
+      try {
+        await emailService.sendEmail(
+          email,
+          "Mã OTP đăng ký tài khoản",
+          `Mã OTP của bạn là: ${otp}`,
+          `<h2>Mã OTP của bạn là: ${otp}</h2>`
+        );
+      } catch (error) {
+        console.log(error);
+        return sendErrorResponse(res, 500, {
+          sendEmail: "Error when sending email",
+        });
+      }
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+      await otpService.create({
+        userId: id,
+        otp: otp,
+        expiresAt: expiresAt,
+      });
+      await userService.update({ isActived: 0 }, { id: id });
+    }
+    if (req.file) {
+      const currentUser = await userService.findOne({ id: id });
+      if (currentUser && currentUser.avatar) {
+        const avatarPublicId = currentUser.avatar
+          .split("/")
+          .slice(7)
+          .join("/")
+          .split(".")[0];
+        await cloudinary.uploader.destroy(avatarPublicId);
+      }
+      req.body.avatar = req.file.path;
+    }
+    await userService.update(req.body, { id: id });
+    return res.send({
+      message: "User updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return sendErrorResponse(res, 500, {
+      message: "Update failed",
+    });
+  }
+};

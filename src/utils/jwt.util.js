@@ -17,6 +17,9 @@ function verifyToken(token) {
   try {
     return jwt.verify(token, config.app.jwt.key);
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return null;
+    }
     return null;
   }
 }

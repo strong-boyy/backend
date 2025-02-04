@@ -1,20 +1,23 @@
-const { User } = require("../models/index");
+const { Users } = require("../models/index");
 
 class UserService {
   async create(userData) {
-    const newUser = await User.create(userData);
-    return newUser;
+    return await Users.create(userData);
   }
 
   async findOne(query) {
-    const user = await User.findOne({ where: query });
-    return user;
+    return await Users.findOne({ where: query });
   }
 
   async update(userData, query) {
-    await User.update(userData, {
-      where: query,
-    });
+    try {
+      await Users.update(userData, {
+        where: query,
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
 

@@ -48,9 +48,6 @@ exports.login = async (req, res, next) => {
 
 exports.loginByGoogle = async (req, res, next) => {
   try {
-    if (!req.user) {
-      return next(new ApiError(401, "Please log in again"));
-    }
     if (req.isAuthenticated()) {
       const { googleId, email } = req.user;
       const userService = new UserService();
@@ -264,7 +261,7 @@ exports.refreshToken = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
   try {
     const { name, email } = req.body;
-    const { id } = req.user;
+    const userId = req.user.id || req.params.userId;
     const userService = new UserService();
     const otpService = new OtpService();
     if (email) {
@@ -291,14 +288,22 @@ exports.updateUser = async (req, res, next) => {
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 5);
       await otpService.create({
-        userId: id,
+        userId: userId,
         otp: otp,
         expiresAt: expiresAt,
       });
-      await userService.update({ isActived: 0 }, { id: id });
+      const updatedUser = await userService.update(
+        { isActived: 0 },
+        { id: userId }
+      );
+      if (!updatedUser) {
+        return sendErrorResponse(res, 400, {
+          message: "Update failed",
+        });
+      }
     }
     if (req.file) {
-      const currentUser = await userService.findOne({ id: id });
+      const currentUser = await userService.findOne({ id: userId });
       if (currentUser && currentUser.avatar) {
         const avatarPublicId = currentUser.avatar
           .split("/")
@@ -309,7 +314,12 @@ exports.updateUser = async (req, res, next) => {
       }
       req.body.avatar = req.file.path;
     }
-    await userService.update(req.body, { id: id });
+    const updatedUser = await userService.update(req.body, { id: userId });
+    if (!updatedUser) {
+      return sendErrorResponse(res, 400, {
+        message: "Update failed",
+      });
+    }
     return res.send({
       message: "User updated successfully",
     });

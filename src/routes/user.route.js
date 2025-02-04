@@ -39,7 +39,7 @@ router.post(
 router.post("/auth/refreshToken", verifyToken, users.refreshToken);
 
 router.put(
-  "/auth/update",
+  "/auth/update/:userId",
   verifyToken,
   upload.single("avatar"),
   validate(UserSchema.updateUserSchema),

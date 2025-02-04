@@ -10,6 +10,7 @@ const config = require("./src/config/index");
 const port = config.app.port;
 const passport = require("./src/passport");
 const userRouter = require("./src/routes/user.route");
+const taskRouter = require("./src/routes/task.route");
 
 app.use(
   cors({
@@ -34,6 +35,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/api/users", userRouter);
+app.use("/api/tasks", taskRouter);
 
 app.get("/", (req, res) => {
   res.send("<a href='/api/users/auth/google'>Login with google</a>");

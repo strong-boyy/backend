@@ -12,7 +12,7 @@ const verifyToken = (req, res, next) => {
   const decoded = jwtService.verifyToken(token); 
   if (!decoded) {
     return sendErrorResponse(res, 403, {
-      token: "Refresh token expired or invalid. Please log in again.",
+      token: "Token expired or invalid. Please log in again.",
     });
   }
   req.user = decoded;

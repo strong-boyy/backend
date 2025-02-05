@@ -6,7 +6,7 @@
 
 Đầu tiên, bạn cần clone repository về máy:
 
-bash
+```
 git clone <repository-url>
 cd <repository-folder>
 
@@ -14,5 +14,5 @@ cd <repository-folder>
 
 Sử dụng npm để cài đặt các package cần thiết:
 
-bash
+```
 npm install

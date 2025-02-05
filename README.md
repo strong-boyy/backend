@@ -10,6 +10,7 @@
 git clone <repository-url>
 cd <repository-folder>
 
+```
 ### 2️⃣ Cài đặt dependencies
 
 Sử dụng npm để cài đặt các package cần thiết:

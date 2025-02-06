@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.hasOne(models.Otp, { foreignKey: "userId" });
       this.hasMany(models.Tasks, { foreignKey: "created_by", as: "createdTasks" });
+      this.hasMany(models.BlackList, { foreignKey: "userId", as: "blacklistedTokens" });
     }
   }
   Users.init(

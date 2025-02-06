@@ -9,6 +9,7 @@ const OtpService = require("../services/otp.service");
 const { Op } = require("sequelize");
 const sendErrorResponse = require("../helpers/error-response");
 const cloudinary = require("../config/cloudinary");
+const BlackListService=require("../services/blacklist.service")
 
 exports.login = async (req, res, next) => {
   try {
@@ -37,12 +38,38 @@ exports.login = async (req, res, next) => {
           accessToken: accessToken,
           refreshToken: refreshToken,
         },
-        user: omit(user.toJSON(), "password"),
+        user: omit(user, "password"),
       },
     });
   } catch (error) {
     console.log(error);
     return next(new ApiError(500, { message: "Error during login" }));
+  }
+};
+
+exports.logout = async (req, res, next) => {
+  try {
+    const { id, email, token } = req.user;
+    const userService = new UserService();
+    const blackListService = new BlackListService();
+    const user = await userService.findById(id);
+    if (!user) {
+      return sendErrorResponse(res, 500, {
+        user: "User not found",
+      });
+    }
+    await blackListService.create({
+      refreshToken: token,
+      userId: user.id,
+    });
+    return res.send({
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return sendErrorResponse(res, 500, {
+      message: "Error when logouting account",
+    });
   }
 };
 

@@ -4,6 +4,7 @@ class TasksService {
   getFindOptions(query = {}, page = null, pageSize = null) {
     const options = {
       where: query,
+      raw: true,
       attributes: { exclude: ["statusId", "created_by"] },
       include: [
         {

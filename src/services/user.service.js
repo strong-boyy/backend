@@ -6,7 +6,11 @@ class UserService {
   }
 
   async findOne(query) {
-    return await Users.findOne({ where: query });
+    return await Users.findOne({ where: query, raw: true });
+  }
+
+  async findById(id) {
+    return await Users.findByPk(id, { raw: true });
   }
 
   async update(userData, query) {

@@ -6,7 +6,7 @@ class OtpService {
   }
 
   async findOne(query) {
-    return await Otp.findOne({ where: query });
+    return await Otp.findOne({ where: query, raw: true });
   }
 
   async delete(query) {

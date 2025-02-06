@@ -19,6 +19,9 @@ exports.login = async (req, res, next) => {
     if (!user) {
       return sendErrorResponse(res, 400, { email: "Please check your email" });
     }
+    if(!user.isActived){
+      return sendErrorResponse(res, 400, { email: "Email is not verified. Please check your inbox." });
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return sendErrorResponse(res, 400, { password: "Incorrect password" });

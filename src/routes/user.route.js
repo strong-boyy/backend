@@ -3,7 +3,7 @@ const router = express.Router();
 const users = require("../controllers/user.controller");
 const UserSchema = require("../schemas/user.schema");
 const validate = require("../middlewares/validate.middleware");
-const verifyToken = require("../middlewares/auth.middleware");
+const authToken = require("../middlewares/auth.middleware");
 const upload = require("../middlewares/multer.middleware");
 const passport = require("../../src/passport");
 
@@ -25,6 +25,8 @@ router.get("/auth/google/profile", users.loginByGoogle);
 // End Google
 
 router.post("/auth/login", validate(UserSchema.loginSchema), users.login);
+router.post("/auth/logout", authToken.verifyToken, users.logout);
+
 router.post(
   "/auth/register",
   validate(UserSchema.registerSchema),
@@ -36,11 +38,16 @@ router.post(
   users.verifyOtp
 );
 
-router.post("/auth/refreshToken", verifyToken, users.refreshToken);
+router.post(
+  "/auth/refreshToken",
+  authToken.verifyToken,
+  authToken.isTokenBlacklisted,
+  users.refreshToken
+);
 
 router.put(
   "/auth/update/:userId",
-  verifyToken,
+  authToken.verifyToken,
   upload.single("avatar"),
   validate(UserSchema.updateUserSchema),
   users.updateUser
